@@ -18,7 +18,7 @@ int main(int argc, char* argv[]){
         perror("Error opening file");
         exit(1);
     }
-char buf[256];
+    char buf[256];
     int dial = 50;        // starting position
     int res = 0;          // count of times passing 0
 
