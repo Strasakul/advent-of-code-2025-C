@@ -17,7 +17,7 @@ int getbydelim(char* _Buffer, int _MaxCount, char _Delimiter, FILE *_Stream){
     return (c == EOF && i == 0) ? 0 : 1;
 }
 
-int isInvalidId(unsigned long long id){
+int isInvalidIdPart1(unsigned long long id){
     char idstr[255];
     sprintf(idstr, "%llu", id);
     int len = strlen(idstr);
@@ -33,6 +33,28 @@ int isInvalidId(unsigned long long id){
         }
     }
     return 1;
+}
+
+int isInvalidIdPart2(unsigned long long id){
+    char idstr[255];
+    sprintf(idstr, "%llu", id);
+    int len = strlen(idstr);
+    int half = len/2;
+
+    for(int sizeOfPart = 1; sizeOfPart <= half; sizeOfPart++){
+        if(len % sizeOfPart) continue;
+        int j = 0;
+        while(idstr[j] == idstr[j + sizeOfPart]){
+            if((j + 1 + sizeOfPart) >= len){
+                //printf("Found Invalid ID %s\n", idstr);
+                return 1;
+            }
+            j++;
+        }
+    }
+
+
+    return 0;
 }
 
 int main(int argc, char* argv[]){
@@ -56,7 +78,7 @@ int main(int argc, char* argv[]){
     while(getbydelim(buff, sizeof(buff), ',', fp)){
         if(sscanf(buff, "%llu-%llu", &baseId, &endId) == 2){
             for(unsigned long long id = baseId; id <= endId; id++){
-                if(isInvalidId(id)){
+                if(isInvalidIdPart2(id)){
                     idCount += id;
                 }
             }
