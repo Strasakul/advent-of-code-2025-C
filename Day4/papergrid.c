@@ -13,7 +13,7 @@ int getNumOfNeighbors(char **matrix, int rows, int cols, int r, int c){
         int nc = c + dc[i];
 
         if(nr >= 0 && nr < rows && nc >= 0 && nc < cols){
-            if(matrix[nr][nc] == '@'){
+            if(matrix[nr][nc] == '@' || matrix[nr][nc] == 'X'){
                 out++;
             }
         }
@@ -22,15 +22,24 @@ int getNumOfNeighbors(char **matrix, int rows, int cols, int r, int c){
     return out;
 }
 
-int getNumOfFreeRolls(char **matrix, int rows){
+int removeFreeRolls(char **matrix, int rows){
     int out = 0;
-    for (int i = 0; i < rows; i++)
+    for (int i = 0; i < rows; i++){
         for(int j = 0; j < strlen(matrix[i]); j++){
-            if(matrix[i][j] != '@') continue;
+            if(matrix[i][j] == '.') continue;
             if(getNumOfNeighbors(matrix, rows, strlen(matrix[i]), i, j) < 4){
+                matrix[i][j] = 'X';
                 out++;
             }
         }
+    }
+
+    for(int i = 0; i < rows; i++){
+        for(int j = 0; j < strlen(matrix[i]); j++){
+            if(matrix[i][j] == 'X') matrix[i][j] = '.';
+        }
+        
+    }
 
     return out;
 }
@@ -75,11 +84,17 @@ int main(int argc, char* argv[]){
 
     fclose(fp);
 
-    int res = getNumOfFreeRolls(paperMatrix, lines);
+    int res = 0;
+    int numOfRolls = removeFreeRolls(paperMatrix, lines);
+    while(numOfRolls > 0){
+        res += numOfRolls;
+        printf("Removed %d rolls\n", res);
+        numOfRolls = removeFreeRolls(paperMatrix, lines);
+    }
 
     free(paperMatrix);
 
-    printf("Num of free paper Rolls: %d", res);
+    printf("Num of removable paper Rolls: %d", res);
 
     return 0;
 }
