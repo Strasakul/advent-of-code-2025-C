@@ -38,6 +38,10 @@ int is_fresh_ingredient(Interval *arr, int m, unsigned long long x){
     return 0;
 }
 
+unsigned long long num_of_ids_in_interval(Interval *in){
+    return in->end - in->start + 1;
+}
+
 
 int main(int argc, char* argv[]){
     FILE* fp;
@@ -103,17 +107,28 @@ int main(int argc, char* argv[]){
     int res = 0;
     char *end;
 
+    // calc num of fresh ingredients
     while(fgets(buff, sizeof buff, fp)){
         buff[strcspn(buff, "\n")] = 0;
         unsigned long long id = strtoull(buff, &end, 10);
-        printf("%ld\n", id);
         if(is_fresh_ingredient(merged, m, id)){
             res++;
         }
     }
 
-    printf("Fresh ingredients: %d", res);
+    printf("Fresh ingredients: %d\n", res);
     
+    // part2
+    // calc num of total ids conssidered fresh
+    unsigned long long tot = 0;
+    unsigned long long sizeofrange = 0;
+    for(int i = 0; i < m; i++){
+        sizeofrange = num_of_ids_in_interval(&merged[i]);
+        printf("Size of range %llu - %llu is %llu\n", merged[i].start, merged[i].end, sizeofrange);
+        tot += sizeofrange;
+    }
+
+    printf("Num of toatlal resh ingredient ids: %llu\n", tot);
     
     free(intervals);
     fclose(fp);
