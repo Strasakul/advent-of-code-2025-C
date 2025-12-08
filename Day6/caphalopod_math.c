@@ -2,6 +2,61 @@
 #include <stdlib.h>
 #include <string.h>
 
+unsigned long long calculate_problem(char ***matrix, int rows, int problem){
+    char operator = matrix[rows-1][problem][0];
+    unsigned long long res = atoi(matrix[0][problem]);
+    unsigned long long num = 0;
+    for(int i = 1; i < rows-1; ++i){
+        num = atoi(matrix[i][problem]);
+        switch(operator){
+            case '+':
+                res += num;
+                break;
+            case '*':
+                res *= num;
+                break;
+            default:
+                perror("Operator not defined\n");
+        }
+    }
+    return res;
+}
+
+// Windows strikes again
+int getLine(char **lineptr, size_t *n, FILE *stream) {
+    if (*lineptr == NULL || *n == 0) {
+        *n = 128;
+        *lineptr = malloc(*n);
+        if (!*lineptr) return -1;
+    }
+
+    size_t i = 0;
+    int c;
+
+    while ((c = fgetc(stream)) != EOF) {
+
+        if (c == '\n') {    // dont store new line character
+            break;
+        }
+
+        if (i + 1 >= *n) {
+            size_t new_size = *n * 2;
+            char *new_ptr = realloc(*lineptr, new_size);
+            if (!new_ptr) return -1;
+            *lineptr = new_ptr;
+            *n = new_size;
+        }
+
+        (*lineptr)[i++] = c;
+    }
+
+    if (i == 0 && c == EOF)
+        return -1;
+
+    (*lineptr)[i] = '\0';
+    return i;
+}
+
 int main(int argc, char *argv[])
 {
     FILE *fp;
@@ -20,23 +75,30 @@ int main(int argc, char *argv[])
         exit(1);
     }
 
+    char *line = NULL;
+    size_t len = 0;
+    int  read;
+
     int rows = 0, cols = 0;
-    char buff[255];
 
-    // num of cols
-    fgets(buff, sizeof buff, fp);
-    buff[strcspn(buff, "\n")] = 0;
-    char *ptr = strtok(buff, " ");
-    while(ptr != NULL){
-        cols++;
-        ptr = strtok(NULL, " ");
+    // get first line for column count
+    if ((read = getLine(&line, &len, fp)) != -1) {
+        rows++;
+        char *tmp = strdup(line);
+        char *tok = strtok(tmp, " \t\n");
+        while (tok) {
+            cols++;
+            tok = strtok(NULL, " \t\n");
+        }
+        free(tmp);
     }
+    printf("Cols: %d\n", cols);
 
-    // num of rows
-    rewind(fp);
-    while(fgets(buff, sizeof buff, fp)){
+    // count remaining rows
+    while ((read = getLine(&line, &len, fp)) != -1){
         rows++;
     }
+    printf("Rows: %d\n", rows);
 
     // make matrix
     char ***matrix = malloc(rows * sizeof(char **));
@@ -50,25 +112,40 @@ int main(int argc, char *argv[])
     // fill matrix
     rewind(fp);
     int i = 0;
-    while(fgets(buff, sizeof buff, fp)){
-        buff[strcspn(buff, "\n")] = 0;
-        char *ptr = strtok(buff, " ");
+    while((read = getLine(&line, &len, fp)) != -1){
+
+        char *tmp = strdup(line);
+        char *tok = strtok(tmp, " ");
         int j = 0;
-        while(ptr != NULL){
-            strcpy(matrix[i][j], ptr);
-            ptr = strtok(NULL, " ");
+        while(tok && j < cols){         // dont count \n col
+            strcpy(matrix[i][j], tok);
+            tok = strtok(NULL, " ");
             j++;
         }
         i++;
     }
 
     // print matrix
-    for(int r = 0; r < rows; r++){
-        for(int c = 0; c < cols; c++){
-            printf("%s ", matrix[r][c]);
-        }
-        printf("\n");
+    //for(int r = 0; r < rows; r++){
+    //    for(int c = 0; c < cols; c++){
+    //        printf("%s ", matrix[r][c]);
+    //    }
+    //    printf("\n");
+    //}
+
+    unsigned long long res = 0;
+    unsigned long long tmp = 0;
+    for(int i = 0; i < cols; ++i){
+        tmp = calculate_problem(matrix, rows, i);
+        printf("tmp = %llu\n", tmp);
+        res += tmp;
     }
+
+    printf("Total amount = %llu\n", res);
+
+    free(line);
+    free(matrix);
+    fclose(fp);
 
     return 0;
 }
