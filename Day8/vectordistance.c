@@ -79,13 +79,10 @@ void union_sets(Vertex *a, Vertex *b){
 int main(int argc, char* argv[]){
      FILE* fp;
 
-    if(argc < 3){
-        perror("Pls add txt file and num of pairs");
+    if(argc < 2){
+        perror("Pls add txt file uwu");
         exit(1);
     }
-
-    // can't bother to do inout checking
-    int num_pairs = atoi(argv[2]);
 
     fp = fopen(argv[1], "r");
     
@@ -135,14 +132,25 @@ int main(int argc, char* argv[]){
     // sort lowest to highest
     qsort(edges, edge_count, sizeof(Edge), edgecmp);
 
-    if (num_pairs > edge_count) {
-        num_pairs = edge_count;         // clamp to valid range
+    // make DSU
+    int num_components = num_vertices;
+    long long result = 0;
+
+    for(int i = 0; i < edge_count && num_components > 1; i++){
+        Vertex *a = edges[i].A;
+        Vertex *b = edges[i].B;
+        if(find_set(a) != find_set(b)){
+            union_sets(a, b);
+            num_components--;
+            if(num_components == 1){
+                // last edge that connected everything
+                result = a->x * b->x;
+                break;
+            }
+        }
     }
 
-    // make DSU
-    for(int i = 0; i < num_pairs; ++i){
-        union_sets(edges[i].A, edges[i].B);
-    }
+    printf("Result x * x of last edge: %lld\n", result);
 
     long long *sizes = malloc(num_vertices * sizeof(long long));
     int size_count = 0;
@@ -157,10 +165,6 @@ int main(int argc, char* argv[]){
 
     long long res = sizes[0] * sizes[1] * sizes[2];
 
-    for(int i = 0; i < size_count; i++){
-        printf("%lld ", sizes[i]);
-    }
-    printf("\n");
     printf("Res: %lld\n", res);
 
 
